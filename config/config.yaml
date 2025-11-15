@@ -1,0 +1,8 @@
+monitored_paths:
+  - "C:/Users/BHAKTI KOKANE/Documents/test_folder"
+
+entropy_sample_size: 4096
+gretel_window: 40
+
+thresholds:
+  alert: 0.60
