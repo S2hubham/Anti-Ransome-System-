@@ -1,6 +1,6 @@
 # ui/routes/alerts.py
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from ui import ws_manager
+from ui.ws_manager import ws_manager
 
 router = APIRouter(tags=["Alerts"])
 

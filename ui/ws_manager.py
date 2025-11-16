@@ -1,53 +1,48 @@
 # ui/ws_manager.py
 
 import asyncio
+from typing import Set
+from fastapi import WebSocket
 
-class WebSocketManager:
+class WSManager:
     def __init__(self):
-        self.active_connections = set()
+        self.active_connections: Set[WebSocket] = set()
         self.loop = None
 
     def set_event_loop(self, loop):
-        """Called by FastAPI to register the running event loop."""
+        """Called from FastAPI startup thread."""
         self.loop = loop
 
-    async def register(self, websocket):
-        """Add a websocket connection (DO NOT accept here)."""
+    async def register(self, websocket: WebSocket):
+        """Register new websocket client."""
         self.active_connections.add(websocket)
 
-    async def unregister(self, websocket):
-        """Remove a websocket connection if it closed."""
-        try:
+    async def unregister(self, websocket: WebSocket):
+        """Remove disconnected websocket."""
+        if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-        except KeyError:
-            pass
 
-    async def broadcast(self, message: dict):
-        """Broadcast message to all clients asynchronously."""
-        dead_sockets = []
-
-        for ws in list(self.active_connections):
+    async def broadcast(self, message: str):
+        """Broadcast asynchronously inside event loop."""
+        dead = []
+        for ws in self.active_connections:
             try:
-                await ws.send_json(message)
+                await ws.send_text(message)
             except Exception:
-                dead_sockets.append(ws)
+                dead.append(ws)
 
-        for ws in dead_sockets:
+        for ws in dead:
             await self.unregister(ws)
 
-    def broadcast_sync(self, message: dict):
-        """
-        Safe to call from other threads (e.g., ForensicLogger)
-        Uses FastAPI event loop to queue the broadcast.
-        """
-        if not self.loop:
+    def broadcast_sync(self, message: str):
+        """Called from threads (logger / anomaly engine)."""
+        if self.loop is None:
+            print("[WS_MANAGER] No event loop available for sync broadcast.")
             return
 
-        asyncio.run_coroutine_threadsafe(
-            self.broadcast(message),
-            self.loop
-        )
+        # Schedule coroutine on the FastAPI event loop
+        asyncio.run_coroutine_threadsafe(self.broadcast(message), self.loop)
 
 
-# Shared singleton used everywhere
-ws_manager = WebSocketManager()
+# Singleton instance
+ws_manager = WSManager()

@@ -1,15 +1,29 @@
-import React from 'react'
+// src/components/RealtimeToast.jsx
+import React from "react"
 
-export default function RealtimeToast({alerts}){
+/**
+ * Lightweight toast list for incoming alerts.
+ * - alerts: [{ timestamp, path, verdict, combined }]
+ */
+export default function RealtimeToast({ alerts = [] }) {
+  if (!alerts || alerts.length === 0) return null
+
   return (
-    <div className="fixed right-4 bottom-4 space-y-2 z-50">
-      {alerts.slice(0,5).map((a,i) => (
-        <div key={i} className="bg-white p-3 shadow rounded w-80">
-          <div className="text-xs text-slate-500">{a.timestamp}</div>
-          <div className="font-semibold">{a.path}</div>
-          <div className="text-sm text-red-600">{a.verdict}</div>
-        </div>
-      ))}
+    <div className="fixed" style={{ right: 16, bottom: 16, zIndex: 60 }}>
+      <div style={{ display: "grid", gap: 8 }}>
+        {alerts.slice(0, 5).map((a, i) => (
+          <div key={i} className="card" style={{ width: 320 }}>
+            <div className="text-xs muted">{a.timestamp}</div>
+            <div style={{ fontWeight: 700, marginTop: 4 }}>{a.path}</div>
+            <div className="text-sm" style={{ marginTop: 6 }}>
+              <span className="mono">{a.combined ?? "—"}</span> —{" "}
+              <span className={a.verdict === "suspicious" ? "badge-danger" : a.verdict === "benign" ? "badge-success" : "badge-warning"}>
+                {a.verdict}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

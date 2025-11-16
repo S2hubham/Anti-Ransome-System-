@@ -1,30 +1,40 @@
-import React, { useEffect, useState } from 'react'
-import { fetchBundles, downloadBundle } from '../services/api'
+// src/pages/Bundles.jsx
+import React, { useEffect, useState } from "react"
+import { fetchBundles, downloadBundle } from "../services/api"
 
-export default function Bundles(){
+export default function Bundles() {
   const [bundles, setBundles] = useState([])
 
-  useEffect(()=>{
-    fetchBundles().then(res => setBundles(res.bundles || []))
+  useEffect(() => {
+    fetchBundles().then((res) => setBundles(res.bundles || []))
   }, [])
 
-  async function handleDownload(id){
+  async function handleDownload(id) {
     const res = await downloadBundle(id)
-    // res.download_url - just navigate
-    window.open(res.download_url, '_blank')
+    window.open(res.download_url, "_blank")
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <h2 className="text-xl font-semibold mb-4">Forensic Bundles</h2>
+    <div className="space-y-4">
+      <h2 className="card-title">Forensic Bundles</h2>
+
       <div className="space-y-3">
-        {bundles.map(b => (
-          <div key={b.id} className="bg-white p-3 rounded shadow flex justify-between">
+        {bundles.length === 0 && (
+          <div className="card muted">No bundles available.</div>
+        )}
+
+        {bundles.map((b) => (
+          <div key={b.id} className="card flex justify-between items-center">
             <div>
               <div className="font-semibold">Bundle #{b.id}</div>
-              <div className="text-sm text-slate-500">{b.timestamp} — Event {b.event_id}</div>
+              <div className="text-xs muted mt-1">
+                {b.timestamp} — Event {b.event_id}
+              </div>
             </div>
-            <button onClick={()=>handleDownload(b.id)} className="bg-indigo-600 text-white px-3 py-1 rounded">Download</button>
+
+            <button className="btn btn-primary" onClick={() => handleDownload(b.id)}>
+              Download
+            </button>
           </div>
         ))}
       </div>
