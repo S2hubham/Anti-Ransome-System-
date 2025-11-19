@@ -1,3 +1,4 @@
+# core/baseline_store.py
 import numpy as np
 import collections
 
@@ -24,3 +25,12 @@ class BaselineStore:
             "std": float(arr.std()),
             "count": len(arr)
         }
+
+    def last(self, key):
+        """
+        Return the most recent entropy value for this key (or None).
+        Useful to compute entropy_delta.
+        """
+        if key not in self.store or len(self.store[key]) == 0:
+            return None
+        return float(self.store[key][-1])

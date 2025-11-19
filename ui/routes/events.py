@@ -96,3 +96,44 @@ def get_event_details(event_id: int):
         return event
     finally:
         conn.close()
+
+
+from pydantic import BaseModel
+from datetime import datetime
+
+class EventLogRequest(BaseModel):
+    path: str
+    op_type: str
+    entropy: float
+    gretel: float
+    ml_score: float
+    combined: float
+    verdict: str
+
+@router.post("/log")
+def log_event(data: EventLogRequest):
+    conn = _connect()
+    try:
+        timestamp = datetime.utcnow().isoformat()
+
+        q = """
+            INSERT INTO events (timestamp, path, op_type, entropy, gretel, ml_score, combined, verdict)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """
+
+        conn.execute(q, (
+            timestamp,
+            data.path,
+            data.op_type,
+            data.entropy,
+            data.gretel,
+            data.ml_score,
+            data.combined,
+            data.verdict,
+        ))
+        conn.commit()
+
+        return {"status": "ok", "timestamp": timestamp}
+
+    finally:
+        conn.close()
